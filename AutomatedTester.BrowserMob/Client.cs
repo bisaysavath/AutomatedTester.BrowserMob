@@ -113,6 +113,11 @@ namespace AutomatedTester.BrowserMob
                 }
             }
         }
+
+        public void SetHeaders(string payload)
+        {
+            MakeJsonRequest(String.Format("{0}/{1}/headers", _baseUrlProxy, _port), "POST", payload);
+        }
        
         public void SetLimits(LimitOptions options)
         {
