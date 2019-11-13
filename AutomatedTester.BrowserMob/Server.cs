@@ -72,8 +72,8 @@ namespace AutomatedTester.BrowserMob
         /// 
         /// </summary>
         /// <returns></returns>
-        public Client CreateProxy(){
-            return new Client(Url);
+        public Client CreateProxy(string proxySettings = null){
+            return new Client(Url, proxySettings);
         }
 
         /// <summary>

@@ -16,14 +16,14 @@ namespace AutomatedTester.BrowserMob
         private readonly string _proxy;
         private readonly string _baseUrlProxy;
 
-        public Client(string url)
+        public Client(string url, string proxySettings = null)
         {
             if (String.IsNullOrEmpty(url))
                 throw new ArgumentException("url not supplied", "url");
 
             _url = url;
             _baseUrlProxy = String.Format("{0}/proxy", _url);
-            using (var response = MakeRequest(_baseUrlProxy, "POST"))
+            using (var response = MakeRequest(_baseUrlProxy, "POST", proxySettings))
             {
                 var responseStream = response.GetResponseStream();
                 if (responseStream == null)
@@ -71,14 +71,14 @@ namespace AutomatedTester.BrowserMob
             return request.GetResponse();
         }
 
-        private static WebResponse MakeJsonRequest(string url, string method, string payload)
+        private static WebResponse MakeRequest(string url, string method, string contentType, string payload)
         {
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = method;
             
-            if (payload != null)
+            if (payload != null && contentType != null)
             {
-                request.ContentType = "text/json";
+                request.ContentType = contentType;
                 request.ContentLength = payload.Length;
                 using (var streamWriter = new StreamWriter(request.GetRequestStream()))
                 {
@@ -116,7 +116,7 @@ namespace AutomatedTester.BrowserMob
 
         public void SetHeaders(string payload)
         {
-            MakeJsonRequest(String.Format("{0}/{1}/headers", _baseUrlProxy, _port), "POST", payload);
+            MakeRequest(String.Format("{0}/{1}/headers", _baseUrlProxy, _port), "POST", "text/json", payload);
         }
        
         public void SetLimits(LimitOptions options)
@@ -146,7 +146,12 @@ namespace AutomatedTester.BrowserMob
 
         public void RemapHost(string host, string ipAddress)
         {
-            MakeJsonRequest(String.Format("{0}/{1}/hosts", _baseUrlProxy, _port), "POST", "{\"" + host + "\":\"" + ipAddress + "\"}");            
+            MakeRequest(String.Format("{0}/{1}/hosts", _baseUrlProxy, _port), "POST", "text/json", "{\"" + host + "\":\"" + ipAddress + "\"}");            
+        }
+
+        public void FilterRequest(string javascriptPayload)
+        {
+            MakeRequest(String.Format("{0}/{1}/filter/request", _baseUrlProxy, _port), "POST", "text/plain", javascriptPayload);
         }
 
         private static string FormatBlackOrWhiteListFormData(string regexp, int statusCode)
